@@ -1,0 +1,50 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // 사용자 인증 확인 함수
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+    
+    // 치료사 권한 확인 함수
+    function isTherapist() {
+      return isAuthenticated() && 
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'therapist';
+    }
+    
+    // 환자 데이터 접근 권한 확인 함수
+    function isPatientOwner(patientId) {
+      return isAuthenticated() && 
+        (get(/databases/$(database)/documents/patients/$(patientId)).data.userId == request.auth.uid ||
+         get(/databases/$(database)/documents/patients/$(patientId)).data.therapistId == request.auth.uid);
+    }
+    
+    // 환자 문서 규칙
+    match /patients/{patientId} {
+      allow read: if isPatientOwner(patientId);
+      allow create: if isTherapist();
+      allow update, delete: if isTherapist() && isPatientOwner(patientId);
+    }
+    
+    // 평가 문서 규칙
+    match /evaluations/{evaluationId} {
+      allow read: if isPatientOwner(resource.data.patientId);
+      allow create: if isTherapist();
+      allow update, delete: if isTherapist() && isPatientOwner(resource.data.patientId);
+    }
+    
+    // 평가 결과 문서 규칙
+    match /assessment_results/{resultId} {
+      allow read: if isPatientOwner(resource.data.patient_id);
+      allow create: if isTherapist();
+      allow update, delete: if isTherapist() && isPatientOwner(resource.data.patient_id);
+    }
+    
+    // 사용자 문서 규칙
+    match /users/{userId} {
+      allow read: if isAuthenticated() && (request.auth.uid == userId || isTherapist());
+      allow create: if isAuthenticated() && request.auth.uid == userId;
+      allow update, delete: if isAuthenticated() && request.auth.uid == userId;
+    }
+  }
+}

@@ -1,0 +1,32 @@
+{
+  "extends": [
+    "next/core-web-vitals",
+    "eslint:recommended",
+    "plugin:@typescript-eslint/recommended",
+    "plugin:react/recommended",
+    "plugin:react-hooks/recommended"
+  ],
+  "parser": "@typescript-eslint/parser",
+  "plugins": ["@typescript-eslint", "react", "react-hooks"],
+  "rules": {
+    // 사용하지 않는 변수에 대한 경고 비활성화
+    "@typescript-eslint/no-unused-vars": "warn",
+    
+    // any 타입 사용 허용 (점진적으로 개선해 나갈 예정)
+    "@typescript-eslint/no-explicit-any": "warn",
+    
+    // React 자동 import 비활성화 (React 17+ 버전에서는 필요 없음)
+    "react/react-in-jsx-scope": "off",
+    
+    // React Hook의 의존성 배열 검사 강화
+    "react-hooks/exhaustive-deps": "warn",
+    
+    // 기타 프로젝트 특화 규칙
+    "no-console": "warn"
+  },
+  "settings": {
+    "react": {
+      "version": "detect"
+    }
+  }
+}
